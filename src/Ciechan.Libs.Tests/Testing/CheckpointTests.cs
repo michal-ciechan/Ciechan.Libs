@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Ciechan.Libs.Testing;
 using FluentAssertions;
@@ -153,6 +154,64 @@ namespace Ciechan.Libs.Tests.Testing
             checkpoint.SetAndContinue(CheckpointFlags.Middle);
 
             continueTask.IsCompleted.Should().BeTrue();
+        }
+
+        [Fact]
+        public void IsExactlySet_SingleSet_SingleCheck_ShouldReturnTrue()
+        {
+            var checkpoint = new Checkpoint<CheckpointFlags>();
+
+            checkpoint.Set(CheckpointFlags.Middle);
+
+            checkpoint.IsExactlySet(CheckpointFlags.Start).Should().BeFalse();
+            checkpoint.IsExactlySet(CheckpointFlags.Middle).Should().BeTrue();
+            checkpoint.IsExactlySet(CheckpointFlags.End).Should().BeFalse();
+
+            checkpoint.IsExactlySet(CheckpointFlags.Middle, CheckpointFlags.Start).Should().BeFalse();
+            checkpoint.IsExactlySet(CheckpointFlags.Middle, CheckpointFlags.End).Should().BeFalse();
+            checkpoint.IsExactlySet(CheckpointFlags.Start, CheckpointFlags.End).Should().BeFalse();
+
+            checkpoint.IsExactlySet(CheckpointFlags.Start, CheckpointFlags.Middle, CheckpointFlags.End)
+                .Should().BeFalse();
+        }
+
+        [Fact]
+        public void SetPoints_SingleSet_ShouldReturnArrayOfOne()
+        {
+            var checkpoint = new Checkpoint<CheckpointFlags>();
+
+            checkpoint.Set(CheckpointFlags.Middle);
+
+            checkpoint.SetPoints().Should().BeEquivalentTo(CheckpointFlags.Middle);
+        }
+
+        [Fact]
+        public void SetPoints_SingleSet_CheckMultiplePoints_ShouldThrowHelpfulError()
+        {
+            var checkpoint = new Checkpoint<CheckpointFlags>();
+
+            checkpoint.Set(CheckpointFlags.Middle);
+
+            Action act = () => checkpoint.SetPoints().Should().BeEquivalentTo(CheckpointFlags.Middle, CheckpointFlags.Start);
+
+            act.Should().Throw<Exception>()
+                .WithMessage(
+                    "Expected collection {Middle} to be equivalent to {Middle, Start}, but it misses {Start}.");
+        }
+
+        [Fact]
+        public void SetPoints_DoubleSet_CheckSinglePoint_ShouldThrowHelpfulError()
+        {
+            var checkpoint = new Checkpoint<CheckpointFlags>();
+
+            checkpoint.Set(CheckpointFlags.Start);
+            checkpoint.Set(CheckpointFlags.Middle);
+
+            Action act = () => checkpoint.SetPoints().Should().BeEquivalentTo(CheckpointFlags.Start);
+
+            act.Should().Throw<Exception>()
+                .WithMessage(
+                    "Expected collection {Start, Middle} to be equivalent to {Start}, but it contains too many items.");
         }
     }
 }

@@ -1,5 +1,6 @@
 using Ciechan.Libs.Testing;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Ciechan.Libs.Threading;
 using FluentAssertions;
@@ -19,7 +20,12 @@ namespace Ciechan.Libs.Tests.Threading
             InsideInnerLockStart,
             InsideOuterLockInnerLockCalled,
             InsideOuterLockEnd,
-            End
+            End,
+            OuterSubTaskStart,
+            OuterSubTaskInsideLock,
+            OuterSubTaskLockCalled,
+            OuterSubTaskEnd,
+            InsideOuterLockSubTaskCalled
         }
 
         [Fact]
@@ -39,50 +45,168 @@ namespace Ciechan.Libs.Tests.Threading
             await tc1.WaitFor(Checkpoints.Start);
             await tc2.WaitFor(Checkpoints.Start);
 
+            tc1.SetPoints().Should().BeEquivalentTo(new[]
+            {
+                Checkpoints.Start
+            });
+            tc2.SetPoints().Should().BeEquivalentTo(new[]
+            {
+                Checkpoints.Start
+            });
+
+            {
+                ContinueAndWait(tc1, Checkpoints.Start);
+
+                tc1.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start,
+                    Checkpoints.OuterLockCalled,
+                    Checkpoints.InsideOuterLockStart
+                });
+                tc2.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start
+                });
+            }
+            {
+                ContinueAndWait(tc1, Checkpoints.OuterLockCalled);
+
+                tc1.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start,
+                    Checkpoints.OuterLockCalled,
+                    Checkpoints.InsideOuterLockStart
+                });
+                tc2.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start
+                });
+            }
+            {
+                ContinueAndWait(tc1, Checkpoints.InsideOuterLockStart);
+
+                tc1.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start,
+                    Checkpoints.OuterLockCalled,
+                    Checkpoints.InsideOuterLockStart,
+                    Checkpoints.InsideOuterLockInnerLockCalled,
+                    Checkpoints.InsideInnerLockStart
+                });
+                tc2.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start
+                });
+            }
+            {
+                ContinueAndWait(tc1, Checkpoints.InsideOuterLockInnerLockCalled);
+
+                tc1.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start,
+                    Checkpoints.OuterLockCalled,
+                    Checkpoints.InsideOuterLockStart,
+                    Checkpoints.InsideOuterLockInnerLockCalled,
+                    Checkpoints.InsideInnerLockStart,
+                    Checkpoints.OuterSubTaskStart,
+                    Checkpoints.InsideOuterLockSubTaskCalled
+                });
+                tc2.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start
+                });
+            }
+            {
+                ContinueAndWait(tc1, Checkpoints.InsideInnerLockStart);
+
+                tc1.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start,
+                    Checkpoints.OuterLockCalled,
+                    Checkpoints.InsideOuterLockStart,
+                    Checkpoints.InsideOuterLockInnerLockCalled,
+                    Checkpoints.InsideInnerLockStart,
+                    Checkpoints.InsideOuterLockEnd
+                });
+                tc2.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start
+                });
+            }
+            {
+                ContinueAndWait(tc1, Checkpoints.InsideOuterLockEnd);
+
+                tc1.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start,
+                    Checkpoints.OuterLockCalled,
+                    Checkpoints.InsideOuterLockStart,
+                    Checkpoints.InsideOuterLockInnerLockCalled,
+                    Checkpoints.InsideInnerLockStart,
+                    Checkpoints.InsideOuterLockEnd,
+                    Checkpoints.End
+                });
+                tc2.SetPoints().Should().BeEquivalentTo(new[]
+                {
+                    Checkpoints.Start
+                });
+            }
+
+
             Task CreateAndStartTask(Checkpoint<Checkpoints> checkpoint)
             {
-                return Task.Run(() =>
+                return Task.Run(async () =>
                 {
-                    checkpoint.SetAndWaitForContinuation(Checkpoints.Start);
+                    await checkpoint.SetAndWaitForContinuation(Checkpoints.Start);
 
-                    var outerLock = _lock.DoWithLock(() =>
+                    var outerLock = _lock.DoWithLock(async () =>
                     {
-                        checkpoint.SetAndWaitForContinuation(Checkpoints.InsideOuterLockStart);
+                        await checkpoint.SetAndWaitForContinuation(Checkpoints.InsideOuterLockStart);
 
-                        var innerLock = _lock.DoWithLock(() =>
+                        var innerLock = _lock.DoWithLock(async () =>
                         {
-                            checkpoint.SetAndWaitForContinuation(Checkpoints.InsideInnerLockStart);
-
-                            return Task.CompletedTask;
+                            await checkpoint.SetAndWaitForContinuation(Checkpoints.InsideInnerLockStart);
                         });
 
-                        checkpoint.SetAndWaitForContinuation(Checkpoints.InsideOuterLockInnerLockCalled);
+                        await checkpoint.SetAndWaitForContinuation(Checkpoints.InsideOuterLockInnerLockCalled);
+
+                        Task.Run(async () =>
+                        {
+                            await checkpoint.SetAndWaitForContinuation(Checkpoints.OuterSubTaskStart);
+
+                            var subTaskLock = _lock.DoWithLock(async () =>
+                            {
+                                await checkpoint.SetAndWaitForContinuation(Checkpoints.OuterSubTaskInsideLock);
+                            });
+
+                            await checkpoint.SetAndWaitForContinuation(Checkpoints.OuterSubTaskLockCalled);
+
+                            subTaskLock.GetAwaiter().GetResult();
+
+                            await checkpoint.SetAndWaitForContinuation(Checkpoints.OuterSubTaskEnd);
+                        }).GetAwaiter();
+
+                        await checkpoint.SetAndWaitForContinuation(Checkpoints.InsideOuterLockSubTaskCalled);
 
                         innerLock.GetAwaiter().GetResult();
 
-                        checkpoint.SetAndWaitForContinuation(Checkpoints.InsideOuterLockEnd);
-
-                        return Task.CompletedTask;
+                        await checkpoint.SetAndWaitForContinuation(Checkpoints.InsideOuterLockEnd);
                     });
 
-                    checkpoint.SetAndWaitForContinuation(Checkpoints.OuterLockCalled);
+                    await checkpoint.SetAndWaitForContinuation(Checkpoints.OuterLockCalled);
 
                     outerLock.GetAwaiter().GetResult();
 
-                    checkpoint.SetAndWaitForContinuation(Checkpoints.End);
+                    await checkpoint.SetAndWaitForContinuation(Checkpoints.End);
                 });
             }
         }
-    }
 
-    public class TestableTaskCompletionSource
-    {
-        private TestableTaskCompletionSource<object> _tcs = new TestableTaskCompletionSource<object>();
+        private static void ContinueAndWait(Checkpoint<Checkpoints> tc1, Checkpoints point)
+        {
+            tc1.Continue(point);
 
-
-    }
-    public class TestableTaskCompletionSource<T>
-    {
-
+            Thread.Sleep(100);
+        }
     }
 }

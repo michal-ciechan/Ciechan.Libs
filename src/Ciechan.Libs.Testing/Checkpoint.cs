@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Ciechan.Libs.Testing
@@ -66,6 +68,11 @@ namespace Ciechan.Libs.Testing
             return SetInternal(point).ContinuationTask;
         }
 
+        public void SetAndWaitForContinuationSync(T point)
+        {
+            SetInternal(point).ContinuationTask.GetAwaiter().GetResult();
+        }
+
         public void SetAndContinue(T point)
         {
             _points.AddOrUpdate(point
@@ -91,6 +98,35 @@ namespace Ciechan.Libs.Testing
             var entry = _points.GetOrAdd(point, arg => new Entry());
 
             return entry.IsHitTask.ContinueWith(x => Continue(point));
+        }
+
+        /// <summary>
+        /// Checks if all provided points have been set. If any other points have been set, returns false
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns>True if all provided points have been set. If any other points have been set, returns false</returns>
+        public bool IsExactlySet(params T[] points)
+        {
+            var allSetPointsHaveBeenSpecified = _points
+                .Where(x => x.Value.IsHit)
+                .All(kvp => points.Contains(kvp.Key));
+
+            var allSpecifiedPointsHaveBeenHit = points.All(IsSet);
+
+            return allSetPointsHaveBeenSpecified && allSpecifiedPointsHaveBeenHit;
+        }
+        public bool IsOnlyUnSet(params T[] points)
+        {
+            return _points
+                .Where(x => x.Value.IsHit)
+                .All(kvp => !points.Contains(kvp.Key));
+        }
+
+        public IEnumerable<T> SetPoints()
+        {
+            return _points
+                .Where(x => x.Value.IsHit)
+                .Select(x => x.Key);
         }
     }
 }
