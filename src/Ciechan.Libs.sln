@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ciechan.Libs.Tests", "Ciech
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ciechan.Libs.Testing", "Ciechan.Libs.Testing\Ciechan.Libs.Testing.csproj", "{98D26C6B-DFE5-409E-8A6F-F1127A406D2B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ciechan.Libs.Timing", "Ciechan.Libs.Timing\Ciechan.Libs.Timing.csproj", "{C3FDD4FE-7E35-4092-97D1-1A9230EA5052}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{98D26C6B-DFE5-409E-8A6F-F1127A406D2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98D26C6B-DFE5-409E-8A6F-F1127A406D2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98D26C6B-DFE5-409E-8A6F-F1127A406D2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3FDD4FE-7E35-4092-97D1-1A9230EA5052}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3FDD4FE-7E35-4092-97D1-1A9230EA5052}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3FDD4FE-7E35-4092-97D1-1A9230EA5052}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3FDD4FE-7E35-4092-97D1-1A9230EA5052}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
