@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Company>Codeperf Ltd</Company>
     <Author>Michal Ciechan</Author>
     <Description>Stopwatch and Timing Helpers</Description>
@@ -12,6 +12,7 @@
     <PackageReleaseNotes>
       Initial version with Ticks, TickTimings[T] and StaticStopwatch
     </PackageReleaseNotes>
+    <PackageIconUrl>https://raw.githubusercontent.com/michal-ciechan/Ciechan.Libs/master/src/Ciechan.Libs.Timing/icon.png</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>
