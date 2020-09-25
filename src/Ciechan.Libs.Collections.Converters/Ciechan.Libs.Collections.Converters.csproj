@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Company>Codeperf Ltd</Company>
     <Author>Michal Ciechan</Author>
     <Description>Collection Converters. E.g. Multi Dimensional Array To Object Converter</Description>
@@ -10,7 +10,12 @@
     <IncludeSource>true</IncludeSource>
     <IncludeSymbols>true</IncludeSymbols>
     <PackageReleaseNotes>
-      Initial version with MultiDimensionalArrayConverter
+      ## [1.1.0]
+
+      ### Added
+
+      * `ColumnNameAttribute` handling in `MultiDimensionalArrayConverter`
+      * `ColumnConverterAttribute` handling in `MultiDimensionalArrayConverter`
     </PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
     <LangVersion>latest</LangVersion>
@@ -33,7 +38,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Include="icon.png" Pack="true" PackagePath=""/>
+    <None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
