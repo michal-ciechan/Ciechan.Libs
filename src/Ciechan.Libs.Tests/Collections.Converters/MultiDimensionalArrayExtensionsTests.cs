@@ -1,12 +1,8 @@
 ﻿using System;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using Ciechan.Libs.Collections;
 using Ciechan.Libs.Collections.Converters;
 using Ciechan.Libs.Collections.Converters.Attributes;
 using Ciechan.Libs.Collections.Converters.Interfaces;
-using FluentAssertions;
 using Snapshooter.Xunit;
 using Xunit;
 
