@@ -5,12 +5,12 @@
     <Version>1.0.0</Version>
     <Company>Codeperf Ltd</Company>
     <Author>Michal Ciechan</Author>
-    <Description>Collection Helpers</Description>
+    <Description>Collection Converters. E.g. Multi Dimensional Array To Object Converter</Description>
     <RepositoryUrl>https://github.com/michal-ciechan/Ciechan.Libs</RepositoryUrl>
     <IncludeSource>true</IncludeSource>
     <IncludeSymbols>true</IncludeSymbols>
     <PackageReleaseNotes>
-      Initial version with ListBuilder and Safe Enumerable Extensions
+      Initial version with MultiDimensionalArrayConverter
     </PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
     <LangVersion>latest</LangVersion>
@@ -25,7 +25,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="icon.png" Pack="true" PackagePath=""/>
+    <PackageReference Include="FastMember" Version="1.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ciechan.Libs.Collections\Ciechan.Libs.Collections.csproj" />
   </ItemGroup>
   
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath=""/>
+  </ItemGroup>
+
 </Project>

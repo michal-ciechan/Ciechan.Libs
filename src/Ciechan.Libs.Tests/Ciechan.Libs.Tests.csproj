@@ -10,6 +10,8 @@
     <PackageReference Include="FluentAssertions" Version="5.10.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Moqqer" Version="2.0.102" />
+    <PackageReference Include="Snapshooter.Json" Version="0.5.6" />
+    <PackageReference Include="Snapshooter.Xunit" Version="0.5.6" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>
@@ -22,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ciechan.Libs.Collections.Converters\Ciechan.Libs.Collections.Converters.csproj" />
     <ProjectReference Include="..\Ciechan.Libs.Collections\Ciechan.Libs.Collections.csproj" />
     <ProjectReference Include="..\Ciechan.Libs.Testing\Ciechan.Libs.Testing.csproj" />
     <ProjectReference Include="..\Ciechan.Libs.Threading\Ciechan.Libs.Threading.csproj" />

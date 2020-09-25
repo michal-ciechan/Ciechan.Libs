@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Ciechan.Libs.Collections
 {
@@ -10,10 +8,12 @@ namespace Ciechan.Libs.Collections
 
         public List<T> ToList()
         {
-            if(PreferEmpty)
-                return new List<T>();
+            return new List<T>();
+        }
 
-            return null;
+        public List<T>? ToNullableList()
+        {
+            return PreferEmpty ? new List<T>() : null;
         }
     }
 }
