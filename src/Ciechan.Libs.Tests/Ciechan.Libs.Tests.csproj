@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ciechan.Libs.Collections\Ciechan.Libs.Collections.csproj" />
     <ProjectReference Include="..\Ciechan.Libs.Testing\Ciechan.Libs.Testing.csproj" />
     <ProjectReference Include="..\Ciechan.Libs.Threading\Ciechan.Libs.Threading.csproj" />
     <ProjectReference Include="..\Ciechan.Libs.Timing\Ciechan.Libs.Timing.csproj" />
