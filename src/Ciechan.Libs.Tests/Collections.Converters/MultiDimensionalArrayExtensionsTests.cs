@@ -31,17 +31,22 @@ namespace Ciechan.Libs.Tests.Collections.Converters
             public T2 Second { get; set; }
         }
         
-        public class ConverterDecoratedSample
+        public class StringToStaticIntConverterSample
         {
-            [ColumnConverter(typeof(StringToIntConverter))]
+            [ColumnConverter(typeof(StringToStaticIntConverter))]
             public int First { get; set; }
         }
-
-        public class StringToIntConverter : IColumnConverter
+        
+        public class NullableDecimalSample
         {
-            public object Convert(object row, object value, Type targetType)
+            public decimal? First { get; set; }
+        }
+
+        public class StringToStaticIntConverter : IColumnConverter
+        {
+            public object? Convert(object row, object? value, Type targetType)
             {
-                return Int32.Parse(value.ToString()!);
+                return 69;
             }
         }
 
@@ -110,7 +115,7 @@ namespace Ciechan.Libs.Tests.Collections.Converters
         }
         
         [Fact]
-        public void Deserialize_ColumnConverter()
+        public void Deserialize_StringToStaticIntConverterSample()
         {
             var array = new[]
             {
@@ -120,7 +125,110 @@ namespace Ciechan.Libs.Tests.Collections.Converters
             
             var cols = new[] {"First", "Second"};
 
-            var res = array.Deserialize<ConverterDecoratedSample>(cols)
+            var res = array.Deserialize<StringToStaticIntConverterSample>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_DefaultConverter_StringToInt()
+        {
+            var array = new[]
+            {
+                new object[]{"11", "12"}, 
+                new object[]{"21", "22"}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<Sample<int, int?>>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_DefaultConverter_StringToLong()
+        {
+            var array = new[]
+            {
+                new object[]{"11", "12"}, 
+                new object[]{"21", "22"}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<Sample<long, long?>>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_DefaultConverter_StringToULong()
+        {
+            var array = new[]
+            {
+                new object[]{"11", "12"}, 
+                new object[]{"21", "22"}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<Sample<ulong, ulong?>>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_DefaultConverter_StringToByte()
+        {
+            var array = new[]
+            {
+                new object[]{"11", "12"}, 
+                new object[]{"21", "22"}, 
+            };
+            
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<Sample<byte, byte?>>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_DoubleToNullableDecimal()
+        {
+            var array = new[]
+            {
+                new object[]{1.1, 1.2}, 
+                new object[]{2.1, 2.2}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<NullableDecimalSample>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_StringToNullableDecimal()
+        {
+            var array = new[]
+            {
+                new object[]{"1.1", "1.2"}, 
+                new object[]{"2.1", "2.2"}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<NullableDecimalSample>(cols)
                 .ToList();
 
             Snapshot.Match(res);

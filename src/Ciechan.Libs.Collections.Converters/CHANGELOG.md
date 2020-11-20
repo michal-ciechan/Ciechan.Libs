@@ -1,4 +1,10 @@
 ﻿
+## [1.2.0]
+
+### Added
+
+* `MultiDimensionalArrayConverter` handling nullable types
+
 ## [1.1.0]
 
 ### Added

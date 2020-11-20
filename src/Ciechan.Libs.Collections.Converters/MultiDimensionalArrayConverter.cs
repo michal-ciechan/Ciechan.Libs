@@ -34,7 +34,6 @@ namespace Ciechan.Libs.Collections.Converters
                     var member = typeMembers[x.Name];
 
                     var converter = GetConverter(member);
-                        
                     
                     return (x.Name, x.Ordinal, member, converter);
                 })
@@ -67,7 +66,7 @@ namespace Ciechan.Libs.Collections.Converters
                 as ColumnConverterAttribute;
 
             if (converterAttribute == null)
-                return null;
+                return DefaultColumnConverter.Instance;
 
             var type = converterAttribute.Type;
 
@@ -78,6 +77,24 @@ namespace Ciechan.Libs.Collections.Converters
                 throw new InvalidOperationException($"Property '{member.Name}' must have a {nameof(ColumnConverterAttribute)} Type specified which inherits from {nameof(IColumnConverter)}.");
             
             return (IColumnConverter) TypeAccessor.Create(type).CreateNew();
+        }
+        
+        public class DefaultColumnConverter : IColumnConverter
+        {
+            public static DefaultColumnConverter Instance = new DefaultColumnConverter();
+            
+            public object? Convert(object row, object? value, Type targetType)
+            {
+                if (value == null)
+                    return value;
+
+                if (value.GetType() == targetType)
+                    return value;
+
+                var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+                return System.Convert.ChangeType(value, underlyingType);
+            }
         }
 
         private static string GetColumnNameFromPropertyMember(Member x)

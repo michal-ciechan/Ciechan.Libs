@@ -4,6 +4,6 @@ namespace Ciechan.Libs.Collections.Converters.Interfaces
 {
     public interface IColumnConverter
     {
-        object Convert(object row, object value, Type targetType);
+        object? Convert(object row, object? value, Type targetType);
     }
 }
