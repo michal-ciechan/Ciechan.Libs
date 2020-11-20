@@ -3,6 +3,7 @@ using System.Linq;
 using Ciechan.Libs.Collections.Converters;
 using Ciechan.Libs.Collections.Converters.Attributes;
 using Ciechan.Libs.Collections.Converters.Interfaces;
+using FluentAssertions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -10,6 +11,10 @@ namespace Ciechan.Libs.Tests.Collections.Converters
 {
     public class MultiDimensionalArrayExtensionsTests
     {
+        public MultiDimensionalArrayExtensionsTests()
+        {
+            MultiDimensionalArrayConverter.DefaultColumnConverter.Instance = new MultiDimensionalArrayConverter.DefaultColumnConverter();
+        }
         public class Sample<T1,T2>
         {
             public T1 First { get; set; }
@@ -229,6 +234,60 @@ namespace Ciechan.Libs.Tests.Collections.Converters
             var cols = new[] {"First", "Second"};
 
             var res = array.Deserialize<NullableDecimalSample>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_NullObjectToNullableDecimal()
+        {
+            var array = new[]
+            {
+                new object?[]{null, "1.2"}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<NullableDecimalSample>(cols)
+                .ToList();
+
+            Snapshot.Match(res);
+        }
+        
+        [Fact]
+        public void Deserialize_InvalidStringToNullableDecimal_ShouldThrowHelpfulException()
+        {
+            var array = new[]
+            {
+                new object?[]{"NA", "1.2"}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            Action act = () => array.Deserialize<NullableDecimalSample>(cols)
+                .ToList();
+
+            var msg = act.Should().Throw<ColumnConversionException>().Which.Message;
+
+            msg.Should().Contain("First");
+            msg.Should().Contain("NA");
+            msg.Should().Contain(nameof(MultiDimensionalArrayConverter.DefaultColumnConverter));
+        }
+        
+        [Fact]
+        public void Deserialize_InvalidStringToNullableDecimal_IgnoreInvalidNullableColumnValues()
+        {
+            MultiDimensionalArrayConverter.DefaultColumnConverter.Instance.IgnoreInvalidNullableColumnValues = true;
+            
+            var array = new[]
+            {
+                new object?[]{"NA", "1.2"}, 
+            };
+            
+            var cols = new[] {"First", "Second"};
+
+            var res = array.Deserialize<Sample<decimal?, decimal?>>(cols)
                 .ToList();
 
             Snapshot.Match(res);

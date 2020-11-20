@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using Ciechan.Libs.Collections.Converters.Attributes;
 using Ciechan.Libs.Collections.Converters.Interfaces;
 using FastMember;
@@ -10,7 +11,7 @@ namespace Ciechan.Libs.Collections.Converters
 {
     public static class MultiDimensionalArrayConverter
     {
-        public static IEnumerable<T> Deserialize<T>(this IEnumerable<IReadOnlyList<object>>? array, IReadOnlyList<string> columns) where T : new()
+        public static IEnumerable<T> Deserialize<T>(this IEnumerable<IReadOnlyList<object?>>? array, IReadOnlyList<string> columns) where T : new()
         {
             if (array == null)
                 return Enumerable.Empty<T>();
@@ -18,7 +19,7 @@ namespace Ciechan.Libs.Collections.Converters
             return DeserializeInternal<T>(array, columns);
         }
 
-        private static IEnumerable<T> DeserializeInternal<T>(IEnumerable<IReadOnlyList<object>> array,
+        private static IEnumerable<T> DeserializeInternal<T>(IEnumerable<IReadOnlyList<object?>> array,
             IReadOnlyList<string> cols, IEqualityComparer<string>? columnComparer = null) where T : new()
         {
             columnComparer ??= EqualityComparer<string>.Default;
@@ -39,11 +40,14 @@ namespace Ciechan.Libs.Collections.Converters
                 })
                 .ToList();
 
+            var rowIndex = -1;
             foreach (var row in array)
             {
+                rowIndex++;
+                
                 var res = new T();
 
-                foreach (var (_, ordinal, member, converter) in colIndexes)
+                foreach (var (name, ordinal, member, converter) in colIndexes)
                 {
                     if (row.Count <= ordinal) 
                         continue;
@@ -51,7 +55,19 @@ namespace Ciechan.Libs.Collections.Converters
                     var value = row[ordinal];
 
                     if (converter != null)
-                        value = converter.Convert(row, value, member.Type);
+                    {
+                        try
+                        {
+                            value = converter.Convert(row, value, member.Type);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new ColumnConversionException($"Failed to convert column '{name}' (Column Index {ordinal}) value of '{value}' " +
+                                                                $"on Row Index {rowIndex} using converter '{converter.GetType().Name}'. " +
+                                                                $"Please either fix source data, or implement custom converter using " +
+                                                                $"{nameof(IColumnConverter)} interface and decorating relevant properties with [{nameof(ColumnConverterAttribute)}]", e);
+                        }
+                    }
 
                     accessor[res, member.Name] = value;
                 }
@@ -60,6 +76,8 @@ namespace Ciechan.Libs.Collections.Converters
             }
         }
 
+        private static readonly ConcurrentDictionary<Type, IColumnConverter> _converters = new ConcurrentDictionary<Type, IColumnConverter>();
+        
         private static IColumnConverter? GetConverter(Member member)
         {
             var converterAttribute = member.GetAttribute(typeof(ColumnConverterAttribute), true)
@@ -76,13 +94,14 @@ namespace Ciechan.Libs.Collections.Converters
             if(!typeof(IColumnConverter).IsAssignableFrom(type))
                 throw new InvalidOperationException($"Property '{member.Name}' must have a {nameof(ColumnConverterAttribute)} Type specified which inherits from {nameof(IColumnConverter)}.");
             
-            return (IColumnConverter) TypeAccessor.Create(type).CreateNew();
+            return _converters.GetOrAdd(type, t => (IColumnConverter) TypeAccessor.Create(t).CreateNew());
         }
         
         public class DefaultColumnConverter : IColumnConverter
         {
             public static DefaultColumnConverter Instance = new DefaultColumnConverter();
-            
+            public bool IgnoreInvalidNullableColumnValues { get; set; }
+
             public object? Convert(object row, object? value, Type targetType)
             {
                 if (value == null)
@@ -90,10 +109,26 @@ namespace Ciechan.Libs.Collections.Converters
 
                 if (value.GetType() == targetType)
                     return value;
+                
+                var underlyingType = Nullable.GetUnderlyingType(targetType);
 
-                var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                var isNullable = underlyingType != null;
+                
+                underlyingType ??= targetType;
 
-                return System.Convert.ChangeType(value, underlyingType);
+                try
+                {
+                    return System.Convert.ChangeType(value, underlyingType);
+                }
+                catch
+                {
+                    if (isNullable && IgnoreInvalidNullableColumnValues)
+                    {
+                        return null;
+                    }
+
+                    throw;
+                }
             }
         }
 
@@ -103,6 +138,25 @@ namespace Ciechan.Libs.Collections.Converters
                 return attribute.Name;
             
             return x.Name;
+        }
+    }
+
+    public class ColumnConversionException : Exception
+    {
+        public ColumnConversionException()
+        {
+        }
+
+        protected ColumnConversionException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+
+        public ColumnConversionException(string message) : base(message)
+        {
+        }
+
+        public ColumnConversionException(string message, Exception innerException) : base(message, innerException)
+        {
         }
     }
 }
