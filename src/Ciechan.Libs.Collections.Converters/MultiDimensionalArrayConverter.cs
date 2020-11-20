@@ -84,7 +84,7 @@ namespace Ciechan.Libs.Collections.Converters
                 as ColumnConverterAttribute;
 
             if (converterAttribute == null)
-                return DefaultColumnConverter.Instance;
+                return ColumnConverter.Instance;
 
             var type = converterAttribute.Type;
 
@@ -97,9 +97,11 @@ namespace Ciechan.Libs.Collections.Converters
             return _converters.GetOrAdd(type, t => (IColumnConverter) TypeAccessor.Create(t).CreateNew());
         }
         
-        public class DefaultColumnConverter : IColumnConverter
+        public static IColumnConverter DefaultColumnConverter = ColumnConverter.Instance; 
+        
+        public class ColumnConverter : IColumnConverter
         {
-            public static DefaultColumnConverter Instance = new DefaultColumnConverter();
+            public static ColumnConverter Instance = new ColumnConverter();
             public bool IgnoreInvalidNullableColumnValues { get; set; }
 
             public object? Convert(object row, object? value, Type targetType)

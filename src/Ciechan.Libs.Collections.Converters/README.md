@@ -49,6 +49,20 @@ public int First { get; set; }
 
 Will try to bind to a column called `Column.1` rather than `First` .
 
+### DefaultColumnConverter
+
+By default, an instance of MultiDimensionalArrayConverter.DefaultColumnConverter is used.
+
+You can adjust the default conversion settings by either setting `MultiDimensionalArrayConverter.DefaultColumnConverter` to a custom `IColumnConverter` or editing the properties of `MultiDimensionalArrayConverter.ColumnConverter.Instance` which are as follows: 
+
+**- IgnoreInvalidNullableColumnValues**
+
+Set this to true to make the converter handle exceptions when trying to convert into a nullable column.
+
+```csharp
+MultiDimensionalArrayConverter.ColumnConverter.Instance.IgnoreInvalidNullableColumnValues = true;
+```
+
 ### ColumnConverter Attribute
 
 You can decorate Properties with the `ColumnConverterAttribute` passing in a `IColumnConverter` type to use to convert raw row values before setting a property. This is usefull to ensure a "cell" value is of correct type, and/or to convert it.   

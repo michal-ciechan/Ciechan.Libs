@@ -13,7 +13,7 @@ namespace Ciechan.Libs.Tests.Collections.Converters
     {
         public MultiDimensionalArrayExtensionsTests()
         {
-            MultiDimensionalArrayConverter.DefaultColumnConverter.Instance = new MultiDimensionalArrayConverter.DefaultColumnConverter();
+            MultiDimensionalArrayConverter.ColumnConverter.Instance = new MultiDimensionalArrayConverter.ColumnConverter();
         }
         public class Sample<T1,T2>
         {
@@ -272,13 +272,13 @@ namespace Ciechan.Libs.Tests.Collections.Converters
 
             msg.Should().Contain("First");
             msg.Should().Contain("NA");
-            msg.Should().Contain(nameof(MultiDimensionalArrayConverter.DefaultColumnConverter));
+            msg.Should().Contain(nameof(MultiDimensionalArrayConverter.ColumnConverter));
         }
         
         [Fact]
         public void Deserialize_InvalidStringToNullableDecimal_IgnoreInvalidNullableColumnValues()
         {
-            MultiDimensionalArrayConverter.DefaultColumnConverter.Instance.IgnoreInvalidNullableColumnValues = true;
+            MultiDimensionalArrayConverter.ColumnConverter.Instance.IgnoreInvalidNullableColumnValues = true;
             
             var array = new[]
             {
